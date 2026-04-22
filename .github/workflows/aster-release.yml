@@ -85,13 +85,16 @@ jobs:
         with:
           ref: ${{ needs.validate.outputs.release_tag }}
 
-      - name: Install Linux build dependencies
-        if: matrix.platform == 'linux'
+      - name: Prepare build dependencies
         shell: bash
         run: |
           set -euo pipefail
-          sudo apt-get update -y
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends pkg-config libcap-dev
+          if [[ "${{ matrix.platform }}" == "linux" ]]; then
+            sudo apt-get update -y
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends pkg-config libcap-dev
+          else
+            echo "No extra macOS packages required."
+          fi
 
       - uses: dtolnay/rust-toolchain@a0b273b48ed29de4470960879e8381ff45632f26 # 1.93.0
 
@@ -99,25 +102,23 @@ jobs:
         shell: bash
         run: rustup target add ${{ matrix.rust_targets }}
 
-      - name: Build Linux binary
-        if: matrix.platform == 'linux'
-        shell: bash
-        run: cargo build --locked --release --target x86_64-unknown-linux-gnu --bin aster
-
-      - name: Build macOS universal binary
-        if: matrix.platform == 'macos'
+      - name: Build release binary
         shell: bash
         run: |
           set -euo pipefail
-          cargo build --locked --release --target aarch64-apple-darwin --bin aster
-          cargo build --locked --release --target x86_64-apple-darwin --bin aster
-          mkdir -p target/universal-apple-darwin/release
-          lipo -create \
-            target/aarch64-apple-darwin/release/aster \
-            target/x86_64-apple-darwin/release/aster \
-            -output target/universal-apple-darwin/release/aster
-          chmod +x target/universal-apple-darwin/release/aster
-          lipo -info target/universal-apple-darwin/release/aster
+          if [[ "${{ matrix.platform }}" == "linux" ]]; then
+            cargo build --locked --release --target x86_64-unknown-linux-gnu --bin aster
+          else
+            cargo build --locked --release --target aarch64-apple-darwin --bin aster
+            cargo build --locked --release --target x86_64-apple-darwin --bin aster
+            mkdir -p target/universal-apple-darwin/release
+            lipo -create \
+              target/aarch64-apple-darwin/release/aster \
+              target/x86_64-apple-darwin/release/aster \
+              -output target/universal-apple-darwin/release/aster
+            chmod +x target/universal-apple-darwin/release/aster
+            lipo -info target/universal-apple-darwin/release/aster
+          fi
 
       - name: Package release asset
         id: package
