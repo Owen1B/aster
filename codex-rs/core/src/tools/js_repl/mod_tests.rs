@@ -465,7 +465,7 @@ async fn reset_aborts_inflight_exec_tool_tasks() {
 
 async fn can_run_js_repl_runtime_tests() -> bool {
     // These white-box runtime tests are required on macOS. Linux relies on
-    // the codex-linux-sandbox arg0 dispatch path, which is exercised in
+    // the aster-linux-sandbox arg0 dispatch path, which is exercised in
     // integration tests instead.
     cfg!(target_os = "macos")
 }

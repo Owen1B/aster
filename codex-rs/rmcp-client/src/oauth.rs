@@ -14,7 +14,8 @@
 //! keystore that always encrypts secrets when they are transferred across the bus. If DBus isn't installed the keystore will fall back to the json
 //! file because we don't use the "vendored" feature.
 //!
-//! If the keyring is not available or fails, we fall back to CODEX_HOME/.credentials.json which is consistent with other coding CLI agents.
+//! If the keyring is not available or fails, we fall back to the configured home
+//! directory's `.credentials.json`, which is consistent with other coding CLI agents.
 
 use anyhow::Context;
 use anyhow::Error;
@@ -50,7 +51,7 @@ use tokio::sync::Mutex;
 
 use codex_utils_home_dir::find_codex_home;
 
-const KEYRING_SERVICE: &str = "Codex MCP Credentials";
+const KEYRING_SERVICE: &str = "Aster MCP Credentials";
 const REFRESH_SKEW_MILLIS: u64 = 30_000;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

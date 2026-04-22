@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+ASTER_RS_DIR="${REPO_ROOT}/codex-rs"
+DEFAULT_BIN="${ASTER_RS_DIR}/target/release/aster"
+DEFAULT_CARGO="${HOME}/.cargo/bin/cargo"
+
+export ASTER_HOME="${ASTER_HOME:-${HOME}/.aster}"
+# The upstream code still uses CODEX_HOME internally. Force it to ASTER_HOME
+# for this launcher so Aster never shares a normal Codex config directory.
+mkdir -p "${ASTER_HOME}"
+export CODEX_HOME="${ASTER_HOME}"
+
+BIN_PATH="${ASTER_BIN:-${DEFAULT_BIN}}"
+CARGO_BIN="${CARGO_BIN:-}"
+
+if [[ -z "${CARGO_BIN}" ]]; then
+  if command -v cargo >/dev/null 2>&1; then
+    CARGO_BIN="$(command -v cargo)"
+  elif [[ -x "${DEFAULT_CARGO}" ]]; then
+    CARGO_BIN="${DEFAULT_CARGO}"
+  fi
+fi
+
+if [[ ! -x "${BIN_PATH}" ]]; then
+  if [[ -z "${CARGO_BIN}" ]]; then
+    echo "cargo is not installed. Install Rust, export CARGO_BIN, or set ASTER_BIN to an existing Aster binary." >&2
+    exit 1
+  fi
+
+  echo "Building Aster..." >&2
+  (
+    cd "${ASTER_RS_DIR}"
+    "${CARGO_BIN}" build --release --bin aster
+  )
+fi
+
+for arg in "$@"; do
+  if [[ "${arg}" == "--help" || "${arg}" == "-h" ]]; then
+    "${BIN_PATH}" "$@" | sed \
+      -e 's|~/.codex/config.toml|~/.aster/config.toml|g' \
+      -e 's|codex mcp add|aster mcp add|g'
+    exit "${PIPESTATUS[0]}"
+  fi
+done
+
+exec "${BIN_PATH}" "$@"

@@ -3,9 +3,9 @@ use codex_protocol::permissions::NetworkSandboxPolicy;
 use codex_protocol::protocol::SandboxPolicy;
 use std::path::Path;
 
-/// Basename used when the Codex executable self-invokes as the Linux sandbox
+/// Basename used when the Aster executable self-invokes as the Linux sandbox
 /// helper.
-pub const CODEX_LINUX_SANDBOX_ARG0: &str = "codex-linux-sandbox";
+pub const CODEX_LINUX_SANDBOX_ARG0: &str = "aster-linux-sandbox";
 
 pub fn allow_network_for_proxy(enforce_managed_network: bool) -> bool {
     // When managed network requirements are active, request proxy-only
@@ -15,7 +15,7 @@ pub fn allow_network_for_proxy(enforce_managed_network: bool) -> bool {
 }
 
 /// Converts the sandbox policies into the CLI invocation for
-/// `codex-linux-sandbox`.
+/// `aster-linux-sandbox`.
 ///
 /// The helper performs the actual sandboxing (bubblewrap by default + seccomp) after
 /// parsing these arguments. Policy JSON flags are emitted before helper feature
@@ -71,7 +71,7 @@ pub fn create_linux_sandbox_command_args_for_policies(
 }
 
 /// Converts the sandbox cwd and execution options into the CLI invocation for
-/// `codex-linux-sandbox`.
+/// `aster-linux-sandbox`.
 #[cfg_attr(not(test), allow(dead_code))]
 fn create_linux_sandbox_command_args(
     command: Vec<String>,

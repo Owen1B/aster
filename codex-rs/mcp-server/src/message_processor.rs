@@ -217,7 +217,7 @@ impl MessageProcessor {
 
         let server_info = Implementation {
             name: "codex-mcp-server".to_string(),
-            title: Some("Codex".to_string()),
+            title: Some("Aster".to_string()),
             version: env!("CARGO_PKG_VERSION").to_string(),
             description: None,
             icons: None,
@@ -366,7 +366,7 @@ impl MessageProcessor {
                     Err(e) => {
                         let result = CallToolResult {
                             content: vec![rmcp::model::Content::text(format!(
-                                "Failed to load Codex configuration from overrides: {e}"
+                                "Failed to load Aster configuration from overrides: {e}"
                             ))],
                             structured_content: None,
                             is_error: Some(true),
@@ -379,7 +379,7 @@ impl MessageProcessor {
                 Err(e) => {
                     let result = CallToolResult {
                         content: vec![rmcp::model::Content::text(format!(
-                            "Failed to parse configuration for Codex tool: {e}"
+                            "Failed to parse configuration for Aster tool: {e}"
                         ))],
                         structured_content: None,
                         is_error: Some(true),
@@ -392,7 +392,7 @@ impl MessageProcessor {
             None => {
                 let result = CallToolResult {
                     content: vec![rmcp::model::Content::text(
-                        "Missing arguments for codex tool-call; the `prompt` field is required.",
+                        "Missing arguments for the aster tool-call; the `prompt` field is required.",
                     )],
                     structured_content: None,
                     is_error: Some(true),
@@ -440,7 +440,7 @@ impl MessageProcessor {
                     tracing::error!("Failed to parse Codex tool call reply parameters: {e}");
                     let result = CallToolResult {
                         content: vec![rmcp::model::Content::text(format!(
-                            "Failed to parse configuration for Codex tool: {e}"
+                            "Failed to parse configuration for Aster tool: {e}"
                         ))],
                         structured_content: None,
                         is_error: Some(true),

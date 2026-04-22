@@ -2,69 +2,88 @@ use codex_utils_absolute_path::AbsolutePathBuf;
 use dirs::home_dir;
 use std::path::PathBuf;
 
-/// Returns the path to the Codex configuration directory, which can be
-/// specified by the `CODEX_HOME` environment variable. If not set, defaults to
-/// `~/.codex`.
+const ASTER_HOME_ENV_VAR: &str = "ASTER_HOME";
+const CODEX_HOME_ENV_VAR: &str = "CODEX_HOME";
+
+/// Returns the path to the Aster configuration directory, which can be
+/// specified by the `ASTER_HOME` environment variable. `CODEX_HOME` is still
+/// accepted as a compatibility fallback for upstream tooling and tests. If
+/// neither is set, defaults to `~/.aster`.
 ///
-/// - If `CODEX_HOME` is set, the value must exist and be a directory. The
-///   value will be canonicalized and this function will Err otherwise.
-/// - If `CODEX_HOME` is not set, this function does not verify that the
+/// - If `ASTER_HOME` or `CODEX_HOME` is set, the value must exist and be a
+///   directory. The value will be canonicalized and this function will Err
+///   otherwise.
+/// - If neither environment variable is set, this function does not verify that the
 ///   directory exists.
 pub fn find_codex_home() -> std::io::Result<AbsolutePathBuf> {
-    let codex_home_env = std::env::var("CODEX_HOME")
+    let aster_home_env = std::env::var(ASTER_HOME_ENV_VAR)
         .ok()
         .filter(|val| !val.is_empty());
-    find_codex_home_from_env(codex_home_env.as_deref())
+    let codex_home_env = std::env::var(CODEX_HOME_ENV_VAR)
+        .ok()
+        .filter(|val| !val.is_empty());
+    find_codex_home_from_env_vars(aster_home_env.as_deref(), codex_home_env.as_deref())
 }
 
 fn find_codex_home_from_env(codex_home_env: Option<&str>) -> std::io::Result<AbsolutePathBuf> {
-    // Honor the `CODEX_HOME` environment variable when it is set to allow users
-    // (and tests) to override the default location.
-    match codex_home_env {
-        Some(val) => {
-            let path = PathBuf::from(val);
-            let metadata = std::fs::metadata(&path).map_err(|err| match err.kind() {
-                std::io::ErrorKind::NotFound => std::io::Error::new(
-                    std::io::ErrorKind::NotFound,
-                    format!("CODEX_HOME points to {val:?}, but that path does not exist"),
-                ),
-                _ => std::io::Error::new(
-                    err.kind(),
-                    format!("failed to read CODEX_HOME {val:?}: {err}"),
-                ),
-            })?;
+    find_codex_home_from_env_vars(/*aster_home_env*/ None, codex_home_env)
+}
 
-            if !metadata.is_dir() {
-                Err(std::io::Error::new(
-                    std::io::ErrorKind::InvalidInput,
-                    format!("CODEX_HOME points to {val:?}, but that path is not a directory"),
-                ))
-            } else {
-                let canonical = path.canonicalize().map_err(|err| {
-                    std::io::Error::new(
-                        err.kind(),
-                        format!("failed to canonicalize CODEX_HOME {val:?}: {err}"),
-                    )
-                })?;
-                AbsolutePathBuf::from_absolute_path(canonical)
-            }
-        }
-        None => {
-            let mut p = home_dir().ok_or_else(|| {
-                std::io::Error::new(
-                    std::io::ErrorKind::NotFound,
-                    "Could not find home directory",
-                )
-            })?;
-            p.push(".codex");
-            AbsolutePathBuf::from_absolute_path(p)
-        }
+fn find_codex_home_from_env_vars(
+    aster_home_env: Option<&str>,
+    codex_home_env: Option<&str>,
+) -> std::io::Result<AbsolutePathBuf> {
+    if let Some(val) = aster_home_env {
+        return find_home_from_env_var(ASTER_HOME_ENV_VAR, val);
+    }
+
+    if let Some(val) = codex_home_env {
+        return find_home_from_env_var(CODEX_HOME_ENV_VAR, val);
+    }
+
+    let mut p = home_dir().ok_or_else(|| {
+        std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            "Could not find home directory",
+        )
+    })?;
+    p.push(".aster");
+    AbsolutePathBuf::from_absolute_path(p)
+}
+
+fn find_home_from_env_var(env_var: &str, val: &str) -> std::io::Result<AbsolutePathBuf> {
+    let path = PathBuf::from(val);
+    let metadata = std::fs::metadata(&path).map_err(|err| match err.kind() {
+        std::io::ErrorKind::NotFound => std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            format!("{env_var} points to {val:?}, but that path does not exist"),
+        ),
+        _ => std::io::Error::new(
+            err.kind(),
+            format!("failed to read {env_var} {val:?}: {err}"),
+        ),
+    })?;
+
+    if !metadata.is_dir() {
+        Err(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            format!("{env_var} points to {val:?}, but that path is not a directory"),
+        ))
+    } else {
+        let canonical = path.canonicalize().map_err(|err| {
+            std::io::Error::new(
+                err.kind(),
+                format!("failed to canonicalize {env_var} {val:?}: {err}"),
+            )
+        })?;
+        AbsolutePathBuf::from_absolute_path(canonical)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::find_codex_home_from_env;
+    use super::find_codex_home_from_env_vars;
     use codex_utils_absolute_path::AbsolutePathBuf;
     use dirs::home_dir;
     use pretty_assertions::assert_eq;
@@ -123,11 +142,34 @@ mod tests {
     }
 
     #[test]
+    fn find_codex_home_prefers_aster_home_over_codex_home() {
+        let aster_home = TempDir::new().expect("temp aster home");
+        let codex_home = TempDir::new().expect("temp codex home");
+        let aster_str = aster_home
+            .path()
+            .to_str()
+            .expect("aster home path should be valid utf-8");
+        let codex_str = codex_home
+            .path()
+            .to_str()
+            .expect("codex home path should be valid utf-8");
+
+        let resolved = find_codex_home_from_env_vars(Some(aster_str), Some(codex_str))
+            .expect("valid ASTER_HOME");
+        let expected = aster_home
+            .path()
+            .canonicalize()
+            .expect("canonicalize aster home");
+        let expected = AbsolutePathBuf::from_absolute_path(expected).expect("absolute home");
+        assert_eq!(resolved, expected);
+    }
+
+    #[test]
     fn find_codex_home_without_env_uses_default_home_dir() {
         let resolved =
             find_codex_home_from_env(/*codex_home_env*/ None).expect("default CODEX_HOME");
         let mut expected = home_dir().expect("home dir");
-        expected.push(".codex");
+        expected.push(".aster");
         let expected = AbsolutePathBuf::from_absolute_path(expected).expect("absolute home");
         assert_eq!(resolved, expected);
     }

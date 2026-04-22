@@ -60,6 +60,12 @@ impl UpdateAction {
 
 #[cfg(not(debug_assertions))]
 pub(crate) fn get_update_action() -> Option<UpdateAction> {
+    // Aster is released from this fork's GitHub workflow, not through the
+    // upstream Codex npm/Homebrew/standalone channels.
+    if std::env::var_os("ASTER_ENABLE_UPSTREAM_UPDATE_CHECK").is_none() {
+        return None;
+    }
+
     UpdateAction::from_install_context(InstallContext::current())
 }
 

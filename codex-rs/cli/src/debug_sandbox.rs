@@ -219,7 +219,7 @@ async fn run_command_under_sandbox(
             #[expect(clippy::expect_used)]
             let codex_linux_sandbox_exe = config
                 .codex_linux_sandbox_exe
-                .expect("codex-linux-sandbox executable not found");
+                .expect("aster-linux-sandbox executable not found");
             let use_legacy_landlock = config.features.use_legacy_landlock();
             let args = create_linux_sandbox_command_args_for_policies(
                 command,
@@ -235,7 +235,7 @@ async fn run_command_under_sandbox(
             spawn_debug_sandbox_child(
                 codex_linux_sandbox_exe,
                 args,
-                Some("codex-linux-sandbox"),
+                Some("aster-linux-sandbox"),
                 cwd.to_path_buf(),
                 network_policy,
                 env,
