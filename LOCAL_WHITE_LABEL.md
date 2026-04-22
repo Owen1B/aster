@@ -36,10 +36,10 @@ The wrapper will:
   `scripts/aster` launcher maps it to `ASTER_HOME` for the Aster process.
 - `ASTER_BIN`: optional path override for the compiled `aster` binary
 - `CARGO_BIN`: optional path override for `cargo`
-- `ASTER_ENABLE_UPSTREAM_UPDATE_CHECK`: opt in to upstream Codex npm/Homebrew
-  update hints. Disabled by default for Aster.
-- `ASTER_ENABLE_UPSTREAM_ANNOUNCEMENTS`: opt in to upstream Codex announcement
-  tips. Disabled by default for Aster.
+- `ASTER_ENABLE_UPDATE_CHECK`: opt in to Aster GitHub Release update hints.
+  Disabled by default for Aster.
+- `ASTER_ENABLE_ANNOUNCEMENTS`: opt in to Aster announcement tips. Disabled by
+  default for Aster.
 
 ## GitHub builds
 
@@ -90,7 +90,7 @@ Using a relay/API-key profile avoids the official ChatGPT login flow and keeps t
 
 This local white-label pass focuses on runtime/user-visible branding. Internal
 crate names, model IDs, model prompt templates, protocol base instructions, npm
-package metadata, and some upstream URLs still reference `codex`.
+package metadata, and upstream source-control references can still use `codex`.
 
 Do not mechanically replace `codex` inside files that define model identity,
 model IDs, or prompt text sent to the model. The Aster patch should change the

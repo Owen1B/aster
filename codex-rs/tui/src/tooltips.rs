@@ -4,7 +4,7 @@ use lazy_static::lazy_static;
 use rand::Rng;
 
 const ANNOUNCEMENT_TIP_URL: &str =
-    "https://raw.githubusercontent.com/openai/codex/main/announcement_tip.toml";
+    "https://raw.githubusercontent.com/Owen1B/aster/main/announcement_tip.toml";
 
 const IS_MACOS: bool = cfg!(target_os = "macos");
 const IS_WINDOWS: bool = cfg!(target_os = "windows");
@@ -192,7 +192,7 @@ pub(crate) mod announcement {
             } else if cfg!(target_os = "windows") {
                 Self::Windows
             } else {
-                // Codex currently publishes CLI builds for macOS, Windows, and Linux.
+                // Announcement metadata uses the same target OS strings as upstream.
                 Self::Linux
             }
         }
@@ -206,7 +206,7 @@ pub(crate) mod announcement {
     }
 
     fn blocking_init_announcement_tip() -> Option<String> {
-        if std::env::var_os("ASTER_ENABLE_UPSTREAM_ANNOUNCEMENTS").is_none() {
+        if std::env::var_os("ASTER_ENABLE_ANNOUNCEMENTS").is_none() {
             return None;
         }
 
@@ -453,7 +453,7 @@ from_date = "2000-01-01"
     #[test]
     fn announcement_tip_toml_parse_comments() {
         let toml = r#"
-# Example announcement tips for Codex TUI.
+# Example announcement tips for Aster TUI.
 # Each [[announcements]] entry is evaluated in order; the last matching one is shown.
 # Dates are UTC, formatted as YYYY-MM-DD. The from_date is inclusive and the to_date is exclusive.
 # version_regex matches against the CLI version (env!("CARGO_PKG_VERSION")); omit to apply to all versions.

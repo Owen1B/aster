@@ -90,4 +90,26 @@ if git grep -n "Aster" -- "${model_boundary_paths[@]}"; then
   exit 1
 fi
 
+disallowed_product_endpoints=(
+  "api.github.com/repos/openai/codex/releases/latest"
+  "github.com/openai/codex/releases/latest"
+  "raw.githubusercontent.com/openai/codex/main/announcement_tip.toml"
+  "chatgpt.com/codex/install.sh"
+  "chatgpt.com/codex/install.ps1"
+)
+
+for endpoint in "${disallowed_product_endpoints[@]}"; do
+  if git grep -n -F "${endpoint}" -- \
+    ':!codex-rs/core/*prompt*.md' \
+    ':!codex-rs/protocol/src/prompts/base_instructions/default.md' \
+    ':!codex-rs/protocol/src/models.rs' \
+    ':!codex-rs/protocol/src/openai_models.rs' \
+    ':!codex-rs/protocol/src/config_types.rs' \
+    ':!scripts/aster-check-white-label-boundary'
+  then
+    echo "Aster white-label boundary violation: product update endpoint still points to upstream Codex: ${endpoint}" >&2
+    exit 1
+  fi
+done
+
 echo "Aster white-label boundary check passed against ${BASE_REF}."
