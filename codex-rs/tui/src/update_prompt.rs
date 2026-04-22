@@ -186,8 +186,6 @@ impl WidgetRef for &UpdatePromptScreen {
         Clear.render(area, buf);
         let mut column = ColumnRenderable::new();
 
-        let update_command = self.update_action.command_str();
-
         column.push("");
         column.push(Line::from(vec![
             padded_emoji("  ✨").bold().cyan(),
@@ -204,7 +202,7 @@ impl WidgetRef for &UpdatePromptScreen {
         column.push(
             Line::from(vec![
                 "Release notes: ".dim(),
-                "https://github.com/openai/codex/releases/latest"
+                "https://github.com/Owen1B/aster/releases/latest"
                     .dim()
                     .underlined(),
             ])
@@ -213,7 +211,8 @@ impl WidgetRef for &UpdatePromptScreen {
         column.push("");
         column.push(selection_option_row(
             0,
-            format!("Update now (runs `{update_command}`)"),
+            "Update now (runs Aster GitHub Release installer for Linux/macOS via GitHub)"
+                .to_string(),
             self.highlighted == UpdateSelection::UpdateNow,
         ));
         column.push(selection_option_row(

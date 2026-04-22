@@ -6,15 +6,15 @@ use codex_install_context::StandalonePlatform;
 /// Update action the CLI should perform after the TUI exits.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UpdateAction {
-    /// Update via `npm install -g @openai/codex@latest`.
+    /// Update from the Aster GitHub Releases installer.
     NpmGlobalLatest,
-    /// Update via `bun install -g @openai/codex@latest`.
+    /// Update from the Aster GitHub Releases installer.
     BunGlobalLatest,
-    /// Update via `brew upgrade codex`.
+    /// Update from the Aster GitHub Releases installer.
     BrewUpgrade,
-    /// Update via `curl -fsSL https://chatgpt.com/codex/install.sh | sh`.
+    /// Update from the Aster GitHub Releases installer.
     StandaloneUnix,
-    /// Update via `irm https://chatgpt.com/codex/install.ps1|iex`.
+    /// Report that Aster does not publish Windows builds.
     StandaloneWindows,
 }
 
@@ -36,16 +36,23 @@ impl UpdateAction {
     /// Returns the list of command-line arguments for invoking the update.
     pub fn command_args(self) -> (&'static str, &'static [&'static str]) {
         match self {
-            UpdateAction::NpmGlobalLatest => ("npm", &["install", "-g", "@openai/codex"]),
-            UpdateAction::BunGlobalLatest => ("bun", &["install", "-g", "@openai/codex"]),
-            UpdateAction::BrewUpgrade => ("brew", &["upgrade", "--cask", "codex"]),
-            UpdateAction::StandaloneUnix => (
+            UpdateAction::NpmGlobalLatest
+            | UpdateAction::BunGlobalLatest
+            | UpdateAction::BrewUpgrade
+            | UpdateAction::StandaloneUnix => (
                 "sh",
-                &["-c", "curl -fsSL https://chatgpt.com/codex/install.sh | sh"],
+                &[
+                    "-c",
+                    "curl -fsSL https://raw.githubusercontent.com/Owen1B/aster/main/scripts/install/install.sh | sh",
+                ],
             ),
             UpdateAction::StandaloneWindows => (
                 "powershell",
-                &["-c", "irm https://chatgpt.com/codex/install.ps1|iex"],
+                &[
+                    "-NoProfile",
+                    "-Command",
+                    "Write-Error 'Aster does not currently publish Windows builds. Use https://github.com/Owen1B/aster/releases/latest for Linux and macOS assets.'; exit 1",
+                ],
             ),
         }
     }
@@ -60,9 +67,7 @@ impl UpdateAction {
 
 #[cfg(not(debug_assertions))]
 pub(crate) fn get_update_action() -> Option<UpdateAction> {
-    // Aster is released from this fork's GitHub workflow, not through the
-    // upstream Codex npm/Homebrew/standalone channels.
-    if std::env::var_os("ASTER_ENABLE_UPSTREAM_UPDATE_CHECK").is_none() {
+    if std::env::var_os("ASTER_ENABLE_UPDATE_CHECK").is_none() {
         return None;
     }
 
@@ -119,14 +124,21 @@ mod tests {
             UpdateAction::StandaloneUnix.command_args(),
             (
                 "sh",
-                &["-c", "curl -fsSL https://chatgpt.com/codex/install.sh | sh"][..],
+                &[
+                    "-c",
+                    "curl -fsSL https://raw.githubusercontent.com/Owen1B/aster/main/scripts/install/install.sh | sh"
+                ][..],
             )
         );
         assert_eq!(
             UpdateAction::StandaloneWindows.command_args(),
             (
                 "powershell",
-                &["-c", "irm https://chatgpt.com/codex/install.ps1|iex"][..],
+                &[
+                    "-NoProfile",
+                    "-Command",
+                    "Write-Error 'Aster does not currently publish Windows builds. Use https://github.com/Owen1B/aster/releases/latest for Linux and macOS assets.'; exit 1"
+                ][..],
             )
         );
     }
