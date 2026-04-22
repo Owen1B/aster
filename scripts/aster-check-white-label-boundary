@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+TRACKING_FILE="${ASTER_TRACKING_FILE:-ASTER_UPSTREAM_TRACKING.env}"
+BASE_REF=""
+
+usage() {
+  cat <<'USAGE'
+Usage: scripts/aster-check-white-label-boundary [--base-ref REF]
+
+Verify that Aster white-labeling has not changed model-facing internals.
+
+By default this reads ASTER_LAST_SYNCED_UPSTREAM_TAG from
+ASTER_UPSTREAM_TRACKING.env and compares against upstream-${tag}, falling back to
+${tag}. Use --base-ref to compare against an explicit upstream tag/ref.
+USAGE
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --base-ref)
+      BASE_REF="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+if [[ -z "${BASE_REF}" ]]; then
+  if [[ -f "${TRACKING_FILE}" ]]; then
+    # shellcheck disable=SC1090
+    source "${TRACKING_FILE}"
+  fi
+
+  if [[ -z "${ASTER_LAST_SYNCED_UPSTREAM_TAG:-}" ]]; then
+    echo "Missing --base-ref and ASTER_LAST_SYNCED_UPSTREAM_TAG." >&2
+    exit 2
+  fi
+
+  if git rev-parse --verify --quiet "upstream-${ASTER_LAST_SYNCED_UPSTREAM_TAG}^{commit}" >/dev/null; then
+    BASE_REF="upstream-${ASTER_LAST_SYNCED_UPSTREAM_TAG}"
+  else
+    BASE_REF="${ASTER_LAST_SYNCED_UPSTREAM_TAG}"
+  fi
+fi
+
+git rev-parse --verify "${BASE_REF}^{commit}" >/dev/null
+
+prompt_paths=()
+while IFS= read -r path; do
+  prompt_paths+=("${path}")
+done < <(git ls-files 'codex-rs/core/*prompt*.md')
+
+model_boundary_paths=(
+  "${prompt_paths[@]}"
+  codex-rs/protocol/src/prompts/base_instructions/default.md
+  codex-rs/protocol/src/models.rs
+  codex-rs/protocol/src/openai_models.rs
+  codex-rs/protocol/src/config_types.rs
+)
+
+missing=0
+for path in "${model_boundary_paths[@]}"; do
+  if ! git cat-file -e "${BASE_REF}:${path}" 2>/dev/null; then
+    echo "Base ref ${BASE_REF} does not contain ${path}" >&2
+    missing=1
+  fi
+done
+if [[ "${missing}" -ne 0 ]]; then
+  exit 1
+fi
+
+if ! git diff --quiet "${BASE_REF}" -- "${model_boundary_paths[@]}"; then
+  echo "Aster white-label boundary violation: model-facing files differ from ${BASE_REF}." >&2
+  echo "These files must stay aligned with upstream Codex:" >&2
+  git diff --name-only "${BASE_REF}" -- "${model_boundary_paths[@]}" >&2
+  exit 1
+fi
+
+if git grep -n "Aster" -- "${model_boundary_paths[@]}"; then
+  echo "Aster white-label boundary violation: model-facing files contain Aster." >&2
+  exit 1
+fi
+
+echo "Aster white-label boundary check passed against ${BASE_REF}."

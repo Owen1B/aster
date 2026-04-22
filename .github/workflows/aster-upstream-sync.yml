@@ -67,6 +67,10 @@ jobs:
             --branch "${{ steps.resolve.outputs.branch }}" \
             --create-branch
 
+      - name: Check white-label boundary
+        shell: bash
+        run: ./scripts/aster-check-white-label-boundary --base-ref "upstream-${{ steps.resolve.outputs.tag }}"
+
       - name: Check for branch changes
         id: changes
         shell: bash
