@@ -88,9 +88,13 @@ Using a relay/API-key profile avoids the official ChatGPT login flow and keeps t
 
 ## Limits
 
-This local white-label pass focuses on user-visible branding. Internal crate
-names, model IDs, npm package metadata, and some upstream URLs still reference
-`codex`.
+This local white-label pass focuses on runtime/user-visible branding. Internal
+crate names, model IDs, model prompt templates, protocol base instructions, npm
+package metadata, and some upstream URLs still reference `codex`.
+
+Do not mechanically replace `codex` inside files that define model identity,
+model IDs, or prompt text sent to the model. The Aster patch should change the
+binary/process/config/docs surface, not the model's upstream identity.
 
 ## Tracking upstream
 

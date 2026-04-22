@@ -19,6 +19,8 @@ and configure `aster` as described below.
 - Official Codex Desktop integration is disabled in this white-label build.
 - Internal Rust crates such as `codex-core` intentionally keep upstream names to
   reduce merge conflicts when tracking official releases.
+- Model IDs and model-facing prompt templates intentionally stay aligned with
+  upstream Codex; Aster branding is for the runtime/product surface.
 
 ## Install From GitHub Release
 
