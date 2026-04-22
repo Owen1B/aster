@@ -868,13 +868,15 @@ async fn cli_main(arg0_paths: Arg0DispatchPaths) -> anyhow::Result<()> {
             }
         }
         #[cfg(any(target_os = "macos", target_os = "windows"))]
-        Some(Subcommand::App(app_cli)) => {
+        Some(Subcommand::App(_app_cli)) => {
             reject_remote_mode_for_subcommand(
                 root_remote.as_deref(),
                 root_remote_auth_token_env.as_deref(),
                 "app",
             )?;
-            app_cmd::run_app(app_cli).await?;
+            anyhow::bail!(
+                "Aster Desktop integration is disabled in this white-label build. Use the `aster` CLI directly."
+            );
         }
         Some(Subcommand::Resume(ResumeCommand {
             session_id,
