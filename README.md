@@ -1,111 +1,95 @@
 # Aster CLI
 
-Aster is a white-label build of the OpenAI Codex CLI source tree. This repository
-keeps the runtime name, binary name, config home, and user-facing copy branded as
-`Aster`, while preserving upstream internal crate/module names where that makes
-future `openai/codex` updates easier to replay.
+Aster 是基于 OpenAI Codex CLI 源码树维护的白标构建。本仓库把运行时名称、命令名、配置目录和面向用户的说明改为 `Aster`，同时尽量保留上游内部 crate、模块、模型 ID 和模型提示词，以便后续持续跟踪 `openai/codex` 官方更新。
 
-This is not the official OpenAI Codex distribution. If you want the upstream
-product, use <https://github.com/openai/codex>. If you want this fork, install
-and configure `aster` as described below.
+这不是 OpenAI 官方 Codex 发行版。如果你要使用官方版本，请看 <https://github.com/openai/codex>。如果你要使用本仓库的 Aster，请按下面的方式安装和配置 `aster`。
 
-## What Is Different
+## 和官方 Codex 的区别
 
-- The CLI binary is `aster`.
-- The default config directory is `~/.aster`.
-- The main config file is `~/.aster/config.toml`.
-- The launcher is `scripts/aster` when running from a source checkout.
-- Official Codex npm/Homebrew update prompts are disabled by default.
-- Official Codex Desktop integration is disabled in this white-label build.
-- Internal Rust crates such as `codex-core` intentionally keep upstream names to
-  reduce merge conflicts when tracking official releases.
-- Model IDs and model-facing prompt templates intentionally stay aligned with
-  upstream Codex; Aster branding is for the runtime/product surface.
+- CLI 命令名是 `aster`。
+- 默认配置目录是 `~/.aster`。
+- 主配置文件是 `~/.aster/config.toml`。
+- 从源码目录运行时使用 `scripts/aster`。
+- 官方 Codex 的 npm/Homebrew 更新提示默认关闭。
+- 官方 Codex Desktop 集成在这个白标构建中默认关闭。
+- 内部 Rust crate 名称，例如 `codex-core`，会继续保持上游名称，减少以后同步官方仓库时的冲突。
+- 模型 ID、模型元数据、模型提示词和发给模型的 base instructions 保持和上游 Codex 一致。Aster 的改名范围是运行时/产品表面，不改模型内部身份。
 
-## Install From GitHub Release
+## 从 GitHub Release 安装
 
-Current release assets are produced by this fork's GitHub Actions, not by the
-official Codex npm package or Homebrew cask.
+本仓库的发布产物由 GitHub Actions 构建，不使用官方 Codex 的 npm 包或 Homebrew cask。
 
-Linux x86_64 GNU example:
+Linux x86_64 GNU 示例：
 
 ```bash
-VERSION=0.120.0 # replace with the version from the latest aster-v* release
+VERSION=0.122.0 # 按仓库 Releases 页面最新的 aster-v* 版本替换
 curl -LO "https://github.com/Owen1B/aster/releases/download/aster-v${VERSION}/aster-${VERSION}-x86_64-unknown-linux-gnu.tar.gz"
 tar -xzf "aster-${VERSION}-x86_64-unknown-linux-gnu.tar.gz"
 sudo install -m 755 "aster-${VERSION}-x86_64-unknown-linux-gnu/aster" /usr/local/bin/aster
 aster --help
 ```
 
-macOS universal Apple Darwin example:
+macOS universal Apple Darwin 示例：
 
 ```bash
-VERSION=0.120.0 # replace with the version from the latest aster-v* release
+VERSION=0.122.0 # 按仓库 Releases 页面最新的 aster-v* 版本替换
 curl -LO "https://github.com/Owen1B/aster/releases/download/aster-v${VERSION}/aster-${VERSION}-universal-apple-darwin.tar.gz"
 tar -xzf "aster-${VERSION}-universal-apple-darwin.tar.gz"
 sudo install -m 755 "aster-${VERSION}-universal-apple-darwin/aster" /usr/local/bin/aster
 aster --help
 ```
 
-Use the newest `aster-v*` tag from the repository Releases page and replace
-`VERSION` accordingly. The archive contains the `aster` executable and white-label
-notes.
+请以仓库 Releases 页面里的最新 `aster-v*` 标签为准，并相应替换 `VERSION`。压缩包里包含 `aster` 可执行文件和白标说明文件。
 
-The macOS archive is unsigned and not notarized. If macOS blocks a manually
-downloaded binary, verify the checksum first and then remove the quarantine flag:
+macOS 产物未签名、未 notarize。如果 macOS 阻止手动下载的二进制运行，请先校验 checksum，再移除 quarantine 标记：
 
 ```bash
 xattr -d com.apple.quarantine /usr/local/bin/aster
 ```
 
-For other targets, either add a matching GitHub workflow or build from source.
-Do not install `@openai/codex` or `brew install --cask codex` if your goal is to
-run Aster; those install the official Codex distribution.
+如果你的目标是使用 Aster，不要安装 `@openai/codex`，也不要运行 `brew install --cask codex`。这些会安装官方 Codex 发行版，而不是本仓库的 Aster。
 
-## Run From Source Checkout
+## 从源码目录运行
 
-The source launcher keeps the Aster config isolated from any existing Codex
-installation:
+正常使用建议直接下载 GitHub Release，不需要本地编译。源码目录里的启动脚本主要用于本地调试或开发，它会把 Aster 的配置和现有 Codex 安装隔离开：
 
 ```bash
 ./scripts/aster
 ```
 
-The launcher will:
+启动脚本会做这些事：
 
-- default `ASTER_HOME` to `~/.aster`
-- create the config directory if it does not exist
-- map the upstream compatibility variable `CODEX_HOME` to `ASTER_HOME` only for
-  the launched Aster process
-- build `codex-rs/target/release/aster` if no binary is present
+- 如果没有设置 `ASTER_HOME`，默认使用 `~/.aster`。
+- 如果配置目录不存在，会自动创建。
+- 只在启动的 Aster 进程内，把上游兼容变量 `CODEX_HOME` 映射到 `ASTER_HOME`。
+- 如果没有找到现成二进制，会尝试构建 `codex-rs/target/release/aster`。
 
-If you already have a built binary, point the launcher at it:
+如果你已经有构建好的二进制，可以显式指定：
 
 ```bash
 ASTER_BIN=/path/to/aster ./scripts/aster
 ```
 
-## Config Path
+## 配置文件路径
 
-Aster reads user configuration from:
+Aster 默认读取这个配置文件：
 
 ```text
 ~/.aster/config.toml
 ```
 
-To use a different config home:
+如果你想使用别的配置目录：
 
 ```bash
 export ASTER_HOME="$HOME/.config/aster"
 aster
 ```
 
-`CODEX_HOME` remains an internal compatibility fallback for upstream code, but
-normal Aster usage should prefer `ASTER_HOME`.
+`CODEX_HOME` 仍然作为上游代码兼容用的 fallback 存在，但正常使用 Aster 时应优先使用 `ASTER_HOME`。
 
-## Basic Config Example
+## 基础配置示例
 
-Create `~/.aster/config.toml`:
+创建 `~/.aster/config.toml`：
 
 ```toml
 model = "gpt-5"
@@ -113,18 +97,17 @@ approval_policy = "on-request"
 sandbox_mode = "workspace-write"
 ```
 
-Common values:
+常用配置含义：
 
-- `approval_policy = "on-request"`: ask before commands that need approval.
-- `approval_policy = "never"`: do not ask for approvals.
-- `sandbox_mode = "workspace-write"`: allow edits in the current workspace.
-- `sandbox_mode = "read-only"`: read-only mode.
-- `sandbox_mode = "danger-full-access"`: no filesystem sandboxing.
+- `approval_policy = "on-request"`：需要提权或额外权限的命令会先询问。
+- `approval_policy = "never"`：不请求审批。
+- `sandbox_mode = "workspace-write"`：允许修改当前 workspace。
+- `sandbox_mode = "read-only"`：只读模式。
+- `sandbox_mode = "danger-full-access"`：不启用文件系统沙箱。
 
-## OpenAI-Compatible Relay Config
+## OpenAI 兼容中转配置
 
-If you use a relay or an OpenAI-compatible endpoint, configure a custom provider
-and profile in `~/.aster/config.toml`:
+如果你使用自建 relay 或其他 OpenAI 兼容 endpoint，可以在 `~/.aster/config.toml` 里配置自定义 provider 和 profile：
 
 ```toml
 [model_providers.relay]
@@ -140,24 +123,23 @@ approval_policy = "on-request"
 sandbox_mode = "workspace-write"
 ```
 
-Run it with:
+运行方式：
 
 ```bash
 export RELAY_API_KEY="your-token"
 aster --profile relay
 ```
 
-You can also use the source launcher:
+源码目录里也可以这样运行：
 
 ```bash
 export RELAY_API_KEY="your-token"
 ./scripts/aster --profile relay
 ```
 
-## Direct OpenAI API Key Config
+## 直接使用 OpenAI API Key
 
-If you want to use the OpenAI API-compatible provider directly, one practical
-pattern is to define an explicit provider and profile:
+如果你想直接使用 OpenAI API 兼容 provider，一个清晰的做法是显式定义 provider 和 profile：
 
 ```toml
 [model_providers.openai-api]
@@ -173,17 +155,16 @@ approval_policy = "on-request"
 sandbox_mode = "workspace-write"
 ```
 
-Then run:
+运行方式：
 
 ```bash
 export OPENAI_API_KEY="sk-..."
 aster --profile openai-api
 ```
 
-## MCP Server Config
+## MCP Server 配置
 
-MCP servers are configured in `~/.aster/config.toml` under `mcp_servers`.
-Example:
+MCP server 在 `~/.aster/config.toml` 的 `mcp_servers` 下配置。示例：
 
 ```toml
 [mcp_servers.files]
@@ -194,47 +175,44 @@ args = ["/absolute/path/to/server.js"]
 approval_mode = "approve"
 ```
 
-From the CLI, use the Aster command name:
+查看 MCP 相关命令：
 
 ```bash
 aster mcp --help
 ```
 
-## Useful Environment Variables
+## 常用环境变量
 
-- `ASTER_HOME`: preferred Aster config/state directory. Defaults to `~/.aster`.
-- `ASTER_BIN`: source launcher binary override.
-- `CARGO_BIN`: source launcher cargo override.
-- `ASTER_ENABLE_UPSTREAM_UPDATE_CHECK`: opt in to official Codex npm/Homebrew
-  update checks. Disabled by default.
-- `ASTER_ENABLE_UPSTREAM_ANNOUNCEMENTS`: opt in to official Codex announcement
-  tips. Disabled by default.
+- `ASTER_HOME`：Aster 配置和状态目录，默认是 `~/.aster`。
+- `ASTER_BIN`：源码启动脚本使用的二进制路径覆盖。
+- `CARGO_BIN`：源码启动脚本使用的 Cargo 路径覆盖。
+- `ASTER_ENABLE_UPSTREAM_UPDATE_CHECK`：是否启用官方 Codex npm/Homebrew 更新检查，默认关闭。
+- `ASTER_ENABLE_UPSTREAM_ANNOUNCEMENTS`：是否启用官方 Codex 公告提示，默认关闭。
 
-## Upstream Tracking
+## 跟踪上游
 
-Aster tracks official Codex releases as a small white-label patch set. The fixed
-process is documented in [`docs/aster-upstream-release.md`](docs/aster-upstream-release.md).
-A local upstream-history migration branch is available as
-`zhw_dev/aster-upstream-0.122`; after review, it should replace the older
-snapshot-style `main`.
+Aster 按“小补丁栈”的方式跟踪官方 Codex release：上游 `rust-v*` 标签作为基底，Aster 只在上面保留白标、发布和维护脚本相关改动。固定流程见 [`docs/aster-upstream-release.md`](docs/aster-upstream-release.md)。
 
-Quick checks:
+当前已经准备好的上游历史迁移分支是：
+
+```text
+zhw_dev/aster-upstream-0.122
+```
+
+这个分支用于替换旧的 snapshot 风格 `main`。
+
+常用检查命令：
 
 ```bash
 ./scripts/aster-sync-upstream --target latest-stable --fetch-only
 ./scripts/aster-sync-upstream --target latest-stable --print-tag
+./scripts/aster-check-white-label-boundary --base-ref upstream-rust-v0.122.0
 ```
 
-The GitHub workflow `.github/workflows/aster-upstream-sync.yml` can create a PR
-that replays the Aster patch onto a selected official `rust-v*` tag. After that
-PR is merged, pushing an `aster-vX.Y.Z` tag triggers
-`.github/workflows/aster-release.yml` and publishes Linux plus macOS assets in
-one GitHub Release.
+`.github/workflows/aster-upstream-sync.yml` 可以创建同步上游的 PR：它会把 Aster 补丁栈 rebase 到指定官方 `rust-v*` 标签上。PR 合并后，推送 `aster-vX.Y.Z` 标签会触发 `.github/workflows/aster-release.yml`，并在同一个 GitHub Release 中发布 Linux 和 macOS 两个版本。
 
-## Project Notes
+## 项目说明
 
-- See [`LOCAL_WHITE_LABEL.md`](LOCAL_WHITE_LABEL.md) for implementation notes and
-  white-label boundaries.
-- See [`ASTER_UPSTREAM_TRACKING.env`](ASTER_UPSTREAM_TRACKING.env) for the current
-  upstream tracking state.
-- See [`LICENSE`](LICENSE) for licensing.
+- [`LOCAL_WHITE_LABEL.md`](LOCAL_WHITE_LABEL.md)：白标边界和实现说明。
+- [`ASTER_UPSTREAM_TRACKING.env`](ASTER_UPSTREAM_TRACKING.env)：当前跟踪的上游版本状态。
+- [`LICENSE`](LICENSE)：许可证信息。
