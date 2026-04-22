@@ -193,13 +193,13 @@ aster mcp --help
 
 Aster 按“小补丁栈”的方式跟踪官方 Codex release：上游 `rust-v*` 标签作为基底，Aster 只在上面保留白标、发布和维护脚本相关改动。固定流程见 [`docs/aster-upstream-release.md`](docs/aster-upstream-release.md)。
 
-当前已经准备好的上游历史迁移分支是：
+当前 `main` 已经是以官方 `rust-v0.122.0` 为基底的 Aster patch-stack：
 
 ```text
-zhw_dev/aster-upstream-0.122
+openai/codex rust-v0.122.0  +  Aster 白标补丁  =  main
 ```
 
-这个分支用于替换旧的 snapshot 风格 `main`。
+以后跟踪上游时，只需要把 Aster 补丁栈 rebase 到新的官方 `rust-v*` 标签上，不需要再维护旧版本历史。
 
 常用检查命令：
 
