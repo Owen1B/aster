@@ -15,35 +15,19 @@ openai/codex rust-v0.122.0  ── Aster white-label commits      main
 openai/codex rust-v0.123.0  ── same Aster commits rebased     sync PR
 ```
 
-This is different from a snapshot import. A snapshot has no useful merge-base
-with upstream and forces source-tree replacement. A patch-stack branch keeps the
-official upstream history, so future updates are normal `git rebase --onto` /
-`git cherry-pick` work.
+This shape keeps the official upstream history. Future updates are normal
+`git rebase --onto` / `git cherry-pick` work.
 
-## One-Time Migration
+## Current Baseline
 
-A local upstream-history branch has been prepared from official `rust-v0.122.0`:
+Current `main` starts from official `rust-v0.122.0`:
 
 ```text
-zhw_dev/aster-upstream-0.122
+upstream-rust-v0.122.0  ->  Aster commits  ->  main
 ```
 
-That branch has official `rust-v0.122.0` as its direct parent and one Aster
-white-label patch commit on top. Review it, push it, and use it to replace the
-old snapshot-style `main` when ready.
-
-Recommended migration commands after review:
-
-```bash
-git push origin zhw_dev/aster-upstream-0.122
-git switch zhw_dev/aster-upstream-0.122
-# After confirming GitHub CI/release workflow behavior, make this the new main.
-# If replacing main, use your normal protected-branch process or an explicit
-# force-with-lease update.
-```
-
-Do not continue normal releases from the old snapshot main once this migration is
-accepted.
+Treat `rust-v0.122.0` as Aster's first maintained baseline. There is no need to
+preserve or release previous Aster history.
 
 ## Tracking State
 
@@ -77,8 +61,7 @@ Check that model-facing internals still match the upstream release tag:
 ./scripts/aster-check-white-label-boundary --base-ref upstream-rust-v0.122.0
 ```
 
-Prepare a future sync branch after `main` has been migrated to upstream-history
-mode:
+Prepare a future sync branch:
 
 ```bash
 ./scripts/aster-sync-upstream \

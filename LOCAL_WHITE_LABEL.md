@@ -109,13 +109,14 @@ git remote add upstream https://github.com/openai/codex.git
 git fetch upstream main --tags
 ```
 
-The old local `main` history was snapshot-style. The maintainable target is an
-upstream-history branch with one small Aster white-label patch stack on top of an
-official Rust tag. A local migration branch has been prepared:
+Current `main` starts from official `rust-v0.122.0` and applies the Aster
+white-label patch stack on top:
 
-- `zhw_dev/aster-upstream-0.122`
+- `upstream-rust-v0.122.0`
+- Aster white-label/runtime/release commits
+- `main`
 
-Use that branch as the replacement `main` after review. Future updates should
-use `scripts/aster-sync-upstream` to rebase the Aster patch stack from the last
-official Rust tag to the next one. Keeping internal crate/module names such as
-`codex-core` and `codex-tui` minimizes merge conflicts with official updates.
+Future updates should use `scripts/aster-sync-upstream` to rebase the Aster patch
+stack from the last official Rust tag to the next one. Keeping internal
+crate/module names such as `codex-core` and `codex-tui` minimizes merge conflicts
+with official updates.

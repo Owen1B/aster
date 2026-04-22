@@ -9,7 +9,7 @@ on:
       release_tag:
         description: Existing Aster tag to release, for example aster-v0.122.0
         required: true
-        default: aster-v0.120.0
+        default: aster-v0.122.0
 
 permissions:
   contents: write
