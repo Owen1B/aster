@@ -8,54 +8,61 @@ TRACKING_FILE="${ASTER_TRACKING_FILE:-ASTER_UPSTREAM_TRACKING.env}"
 UPSTREAM_REMOTE="${ASTER_UPSTREAM_REMOTE:-${DEFAULT_UPSTREAM_REMOTE}}"
 UPSTREAM_URL="${ASTER_UPSTREAM_URL:-${DEFAULT_UPSTREAM_URL}}"
 TARGET_TAG="${ASTER_UPSTREAM_TAG:-latest-stable}"
-BASE_REF="${ASTER_PATCH_BASE_REF:-}"
+BASE_TAG=""
 SOURCE_REF="HEAD"
 MODE="fetch-only"
 PRINT_TAG_ONLY=0
+TARGET_BRANCH=""
 
 if [[ -f "${TRACKING_FILE}" ]]; then
   # shellcheck disable=SC1090
   source "${TRACKING_FILE}"
   UPSTREAM_REMOTE="${ASTER_UPSTREAM_REMOTE:-${UPSTREAM_REMOTE}}"
   UPSTREAM_URL="${ASTER_UPSTREAM_URL:-${UPSTREAM_URL}}"
-  BASE_REF="${ASTER_PATCH_BASE_REF:-${BASE_REF}}"
+  BASE_TAG="${ASTER_LAST_SYNCED_UPSTREAM_TAG:-${BASE_TAG}}"
 fi
 
-BASE_REF="${BASE_REF:-aster-v0.120.0}"
+BASE_TAG="${BASE_TAG:-rust-v0.122.0}"
 
 usage() {
   cat <<'USAGE'
 Usage: scripts/aster-sync-upstream [options]
 
-Fetch and optionally replay the local Aster white-label patch on top of an
-official openai/codex Rust release tag.
+Fetch and optionally prepare a patch-stack rebase of Aster onto an official
+openai/codex Rust release tag.
 
-Safe default:
-  scripts/aster-sync-upstream
-
-Useful commands:
+Safe commands:
   scripts/aster-sync-upstream --target latest-stable --fetch-only
-  scripts/aster-sync-upstream --target rust-v0.122.0 --update-worktree
   scripts/aster-sync-upstream --target latest-stable --print-tag
+
+Prepare an update branch after main has been migrated to upstream-history mode:
+  scripts/aster-sync-upstream \
+    --target rust-v0.123.0 \
+    --base-tag rust-v0.122.0 \
+    --source-ref main \
+    --create-branch
 
 Options:
   --target TAG            Upstream tag, latest-stable, or latest-prerelease.
-  --base-ref REF          Aster ref used as the patch base.
-  --source-ref REF        Aster ref containing the patch to replay. Default: HEAD.
+  --base-tag TAG          Previous upstream tag that current Aster commits sit on.
+                          Defaults to ASTER_LAST_SYNCED_UPSTREAM_TAG.
+  --source-ref REF        Aster ref containing commits to rebase. Default: HEAD.
+  --branch NAME           Branch to create. Default: zhw_dev/aster-sync-X.Y.Z.
   --fetch-only            Fetch target upstream tag and print status. Default.
-  --update-worktree       Replace the current tree with upstream TAG, then apply
-                          diff BASE_REF..SOURCE_REF. Requires a clean worktree.
+  --create-branch         Create a branch and rebase Aster commits onto target tag.
   --print-tag             Print the resolved upstream tag only.
   --upstream-remote NAME  Git remote name. Default: upstream.
   --upstream-url URL      Official upstream URL. Default: openai/codex.
   -h, --help              Show this help.
 
-Notes:
-  - This repository has snapshot-style history, not a normal merge-base with
-    openai/codex. The update mode intentionally rewrites the tree on the current
-    branch instead of rebasing onto upstream history.
-  - Commit the resulting changes, then create an Aster release tag such as
-    aster-v0.122.0 so the next sync has a stable patch base.
+Model:
+  This script assumes Aster is a normal patch stack on top of upstream history:
+
+      upstream-rust-v0.122.0 --- Aster commits     (current main)
+      upstream-rust-v0.123.0 --- Aster commits     (new sync branch)
+
+  It intentionally avoids snapshot-tree replacement. If rebase conflicts occur,
+  resolve them normally with git, then continue the rebase.
 USAGE
 }
 
@@ -65,20 +72,24 @@ while [[ $# -gt 0 ]]; do
       TARGET_TAG="$2"
       shift 2
       ;;
-    --base-ref)
-      BASE_REF="$2"
+    --base-tag)
+      BASE_TAG="$2"
       shift 2
       ;;
     --source-ref)
       SOURCE_REF="$2"
       shift 2
       ;;
+    --branch)
+      TARGET_BRANCH="$2"
+      shift 2
+      ;;
     --fetch-only)
       MODE="fetch-only"
       shift
       ;;
-    --update-worktree)
-      MODE="update-worktree"
+    --create-branch)
+      MODE="create-branch"
       shift
       ;;
     --print-tag)
@@ -143,18 +154,18 @@ ensure_upstream_remote() {
   git remote add "${UPSTREAM_REMOTE}" "${UPSTREAM_URL}"
 }
 
-require_clean_worktree() {
-  if [[ -n "$(git status --porcelain)" ]]; then
-    echo "Refusing to update because the worktree is not clean." >&2
-    echo "Commit/stash your changes first, then rerun this command." >&2
-    exit 1
-  fi
-}
-
-fetch_target_tag() {
+fetch_tag_alias() {
   local tag="$1"
   ensure_upstream_remote
   git fetch --no-tags "${UPSTREAM_REMOTE}" "+refs/tags/${tag}:refs/tags/upstream-${tag}"
+}
+
+require_clean_worktree() {
+  if [[ -n "$(git status --porcelain)" ]]; then
+    echo "Refusing to create a sync branch because the worktree is not clean." >&2
+    echo "Commit/stash your changes first, then rerun this command." >&2
+    exit 1
+  fi
 }
 
 write_tracking_file() {
@@ -166,46 +177,47 @@ write_tracking_file() {
 ASTER_UPSTREAM_REMOTE=${UPSTREAM_REMOTE}
 ASTER_UPSTREAM_URL=${UPSTREAM_URL}
 ASTER_LAST_SYNCED_UPSTREAM_TAG=${tag}
-ASTER_PATCH_BASE_REF=aster-v${version}
+ASTER_PATCH_BASE_REF=upstream-${tag}
 ASTER_RELEASE_TAG_PREFIX=aster-v
+ASTER_NEXT_RELEASE_TAG=aster-v${version}
 EOF_TRACKING
 }
 
-update_worktree_from_upstream() {
-  local tag="$1"
-  local target_ref="upstream-${tag}"
-  local tmp_dir patch_file upstream_tree
+create_rebase_branch() {
+  local resolved_tag="$1"
+  local version="${resolved_tag#rust-v}"
+  local base_ref="upstream-${BASE_TAG}"
+  local target_ref="upstream-${resolved_tag}"
+  local branch="${TARGET_BRANCH:-zhw_dev/aster-sync-${version}}"
 
   require_clean_worktree
-  git rev-parse --verify "${BASE_REF}^{commit}" >/dev/null
-  git rev-parse --verify "${SOURCE_REF}^{commit}" >/dev/null
+  fetch_tag_alias "${BASE_TAG}"
+  git rev-parse --verify "${base_ref}^{commit}" >/dev/null
   git rev-parse --verify "${target_ref}^{commit}" >/dev/null
+  git rev-parse --verify "${SOURCE_REF}^{commit}" >/dev/null
 
-  tmp_dir="$(mktemp -d)"
-  patch_file="${tmp_dir}/aster-white-label.patch"
-  upstream_tree="${tmp_dir}/upstream-tree"
-  mkdir -p "${upstream_tree}"
-  trap 'rm -rf "${tmp_dir}"' EXIT
-
-  git diff --binary "${BASE_REF}" "${SOURCE_REF}" -- . > "${patch_file}"
-  git archive "${target_ref}" | tar -x -C "${upstream_tree}"
-
-  tracked_file="$(git ls-files | head -1)"
-  if [[ -n "${tracked_file}" ]]; then
-    git ls-files -z | xargs -0 git rm -q --ignore-unmatch
+  if git show-ref --verify --quiet "refs/heads/${branch}"; then
+    echo "Branch already exists: ${branch}" >&2
+    exit 1
   fi
 
-  rsync -a --delete --exclude '.git' "${upstream_tree}/" ./
-  git add -A
-
-  if [[ -s "${patch_file}" ]]; then
-    git apply --3way --index "${patch_file}"
-  else
-    echo "Warning: ${BASE_REF}..${SOURCE_REF} produced an empty Aster patch." >&2
-  fi
-
-  write_tracking_file "${tag}"
+  git switch -c "${branch}" "${SOURCE_REF}"
+  git rebase --onto "${target_ref}" "${base_ref}" "${branch}"
+  write_tracking_file "${resolved_tag}"
   git add "${TRACKING_FILE}"
+  if ! git diff --cached --quiet; then
+    git commit -m "Update Aster upstream tracking to ${resolved_tag}"
+  fi
+
+  cat <<EOF_STATUS
+Aster upstream patch-stack sync
+  branch:       ${branch}
+  old base:     ${base_ref}
+  new base:     ${target_ref}
+  source ref:   ${SOURCE_REF}
+
+Created sync branch with Aster commits rebased onto ${resolved_tag}.
+EOF_STATUS
 }
 
 resolved_tag="$(resolve_target_tag)"
@@ -219,34 +231,23 @@ if [[ "${PRINT_TAG_ONLY}" -eq 1 ]]; then
   exit 0
 fi
 
-fetch_target_tag "${resolved_tag}"
+fetch_tag_alias "${resolved_tag}"
 
 case "${MODE}" in
   fetch-only)
     cat <<EOF_STATUS
-Aster upstream tracking
+Aster upstream patch-stack tracking
   upstream remote: ${UPSTREAM_REMOTE} (${UPSTREAM_URL})
   target tag:      ${resolved_tag}
   local alias:     upstream-${resolved_tag}
-  patch base:      ${BASE_REF}
+  current base:    upstream-${BASE_TAG}
   source ref:      ${SOURCE_REF}
 
 Fetched upstream tag. No worktree files were changed.
 EOF_STATUS
     ;;
-  update-worktree)
-    update_worktree_from_upstream "${resolved_tag}"
-    cat <<EOF_STATUS
-Aster upstream tracking
-  upstream remote: ${UPSTREAM_REMOTE} (${UPSTREAM_URL})
-  target tag:      ${resolved_tag}
-  local alias:     upstream-${resolved_tag}
-  patch base:      ${BASE_REF}
-  source ref:      ${SOURCE_REF}
-
-The index and worktree now contain upstream ${resolved_tag} plus the Aster patch.
-Review the diff, run GitHub CI, then commit and tag an Aster release.
-EOF_STATUS
+  create-branch)
+    create_rebase_branch "${resolved_tag}"
     ;;
   *)
     echo "Unknown mode: ${MODE}" >&2

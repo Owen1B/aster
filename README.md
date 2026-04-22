@@ -212,6 +212,9 @@ aster mcp --help
 
 Aster tracks official Codex releases as a small white-label patch set. The fixed
 process is documented in [`docs/aster-upstream-release.md`](docs/aster-upstream-release.md).
+A local upstream-history migration branch is available as
+`zhw_dev/aster-upstream-0.122`; after review, it should replace the older
+snapshot-style `main`.
 
 Quick checks:
 

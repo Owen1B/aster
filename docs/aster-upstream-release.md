@@ -1,32 +1,61 @@
 # Aster Upstream And Release Flow
 
-This repository keeps Aster as a small white-label patch set on top of official
-`openai/codex` Rust release snapshots.
+Aster should be maintained as a small patch stack on top of official
+`openai/codex` Rust release tags.
 
 As of 2026-04-22, the official stable release is `rust-v0.122.0`. The newest
 pre-release observed at the same time is `rust-v0.123.0-alpha.7`.
 
-## Why This Flow
+## Desired Repository Shape
 
-This repository uses snapshot-style history, not a normal fork history with a
-merge-base against `openai/codex`. Do not rely on `git rebase upstream/main` as
-the primary update path.
+The maintainable shape is:
 
-Instead, the fixed process is:
+```text
+openai/codex rust-v0.122.0  ── Aster white-label commits      main
+openai/codex rust-v0.123.0  ── same Aster commits rebased     sync PR
+```
 
-1. Fetch the official Rust release tag from `openai/codex`.
-2. Replace the current source tree with that upstream tag.
-3. Replay the Aster white-label diff from the previous Aster release tag.
-4. Review conflicts and the final diff.
-5. Commit the sync PR.
-6. Tag the merged result with `aster-vX.Y.Z` to publish a GitHub release.
+This is different from a snapshot import. A snapshot has no useful merge-base
+with upstream and forces source-tree replacement. A patch-stack branch keeps the
+official upstream history, so future updates are normal `git rebase --onto` /
+`git cherry-pick` work.
 
-## Current Tracking State
+## One-Time Migration
 
-The current local source snapshot is still based on `rust-v0.120.0` / `aster-v0.120.0`.
-The latest fetched stable upstream tag is `rust-v0.122.0`.
+A local upstream-history branch has been prepared from official `rust-v0.122.0`:
+
+```text
+zhw_dev/aster-upstream-0.122
+```
+
+That branch has official `rust-v0.122.0` as its direct parent and one Aster
+white-label patch commit on top. Review it, push it, and use it to replace the
+old snapshot-style `main` when ready.
+
+Recommended migration commands after review:
+
+```bash
+git push origin zhw_dev/aster-upstream-0.122
+git switch zhw_dev/aster-upstream-0.122
+# After confirming GitHub CI/release workflow behavior, make this the new main.
+# If replacing main, use your normal protected-branch process or an explicit
+# force-with-lease update.
+```
+
+Do not continue normal releases from the old snapshot main once this migration is
+accepted.
+
+## Tracking State
 
 The tracking state lives in `ASTER_UPSTREAM_TRACKING.env`.
+
+On the upstream-history branch, it should say:
+
+```text
+ASTER_LAST_SYNCED_UPSTREAM_TAG=rust-v0.122.0
+ASTER_PATCH_BASE_REF=upstream-rust-v0.122.0
+ASTER_NEXT_RELEASE_TAG=aster-v0.122.0
+```
 
 ## Local Commands
 
@@ -42,36 +71,38 @@ Resolve the latest stable tag only:
 ./scripts/aster-sync-upstream --target latest-stable --print-tag
 ```
 
-Prepare a local sync branch after your current Aster patch is committed:
+Prepare a future sync branch after `main` has been migrated to upstream-history
+mode:
 
 ```bash
-git switch -c zhw_dev/aster-sync-0.122.0 main
 ./scripts/aster-sync-upstream \
-  --target rust-v0.122.0 \
-  --base-ref aster-v0.120.0 \
-  --source-ref HEAD \
-  --update-worktree
-
-git status
-git diff --cached --stat
-git commit -m "Sync Aster with upstream rust-v0.122.0"
+  --target rust-v0.123.0 \
+  --base-tag rust-v0.122.0 \
+  --source-ref main \
+  --create-branch
 ```
 
-If the sync is accepted and merged, create the matching Aster tag:
+If rebase conflicts occur, resolve them as normal Git conflicts, then run:
 
 ```bash
-git tag -a aster-v0.122.0 -m "Aster 0.122.0"
-git push origin main aster-v0.122.0
+git rebase --continue
 ```
 
-Pushing the `aster-v0.122.0` tag triggers the Aster GitHub release workflow.
+After the sync branch is merged, create the matching Aster tag:
+
+```bash
+git tag -a aster-v0.123.0 -m "Aster 0.123.0"
+git push origin main aster-v0.123.0
+```
+
+Pushing the `aster-vX.Y.Z` tag triggers the Aster GitHub release workflow.
 
 ## GitHub Actions
 
 Use these Aster-specific workflows:
 
 - `.github/workflows/aster-upstream-sync.yml`: manually creates an upstream sync
-  pull request by replaying the Aster patch onto an official Rust tag.
+  pull request by rebasing the Aster patch stack onto an official Rust tag.
 - `.github/workflows/aster-linux-package.yml`: manually builds a Linux artifact
   without publishing a release.
 - `.github/workflows/aster-release.yml`: publishes Linux and macOS GitHub
