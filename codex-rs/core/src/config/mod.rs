@@ -303,7 +303,7 @@ pub struct Config {
 
     /// Optional commit attribution text for commit message co-author trailers.
     ///
-    /// - `None`: use default attribution (`Codex <noreply@openai.com>`)
+    /// - `None`: use default attribution (`Aster <noreply@aster.local>`)
     /// - `Some("")` or whitespace-only: disable commit attribution
     /// - `Some("...")`: use the provided attribution text verbatim
     pub commit_attribution: Option<String>,
@@ -446,19 +446,19 @@ pub struct Config {
     /// output will be hyperlinked using the specified URI scheme.
     pub file_opener: UriBasedFileOpener,
 
-    /// Path to the current Codex executable. This cannot be set in the config
+    /// Path to the current Aster executable. This cannot be set in the config
     /// file: it must be set in code via [`ConfigOverrides`].
     pub codex_self_exe: Option<PathBuf>,
 
-    /// Path to the `codex-linux-sandbox` executable. This must be set if
+    /// Path to the `aster-linux-sandbox` executable. This must be set if
     /// [`codex_sandboxing::SandboxType::LinuxSeccomp`] is used. Note that this
     /// cannot be set in the config file: it must be set in code via
     /// [`ConfigOverrides`].
     ///
-    /// When this program is invoked, arg0 will be set to `codex-linux-sandbox`.
+    /// When this program is invoked, arg0 will be set to `aster-linux-sandbox`.
     pub codex_linux_sandbox_exe: Option<PathBuf>,
 
-    /// Path to the `codex-execve-wrapper` executable used for shell
+    /// Path to the `aster-execve-wrapper` executable used for shell
     /// escalation. This cannot be set in the config file: it must be set in
     /// code via [`ConfigOverrides`].
     pub main_execve_wrapper_exe: Option<PathBuf>,

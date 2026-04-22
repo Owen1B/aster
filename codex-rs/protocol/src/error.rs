@@ -77,7 +77,7 @@ pub enum CodexErr {
     #[error("stream disconnected before completion: {0}")]
     Stream(String, Option<Duration>),
     #[error(
-        "Codex ran out of room in the model's context window. Start a new thread or clear earlier history before retrying."
+        "Aster ran out of room in the model's context window. Start a new thread or clear earlier history before retrying."
     )]
     ContextWindowExceeded,
     #[error("no thread with id: {0}")]
@@ -117,7 +117,7 @@ pub enum CodexErr {
     #[error("Quota exceeded. Check your plan and billing details.")]
     QuotaExceeded,
     #[error(
-        "To use Codex with your ChatGPT plan, upgrade to Plus: https://chatgpt.com/explore/plus."
+        "To use Aster with your ChatGPT plan, upgrade to Plus: https://chatgpt.com/explore/plus."
     )]
     UsageNotIncluded,
     #[error("We're currently experiencing high demand, which may cause temporary errors.")]
@@ -131,7 +131,7 @@ pub enum CodexErr {
     /// Sandbox error
     #[error("sandbox error: {0}")]
     Sandbox(#[from] SandboxErr),
-    #[error("codex-linux-sandbox was required but not provided")]
+    #[error("aster-linux-sandbox was required but not provided")]
     LandlockSandboxExecutableNotProvided,
     #[error("unsupported operation: {0}")]
     UnsupportedOperation(String),
@@ -473,7 +473,7 @@ impl std::fmt::Display for UsageLimitReachedError {
 
         let message = match self.plan_type.as_ref() {
             Some(PlanType::Known(KnownPlan::Plus)) => format!(
-                "You've hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/codex/settings/usage to purchase more credits{}",
+                "You've hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), or visit your usage settings to purchase more credits{}",
                 retry_suffix_after_or(self.resets_at.as_ref())
             ),
             Some(PlanType::Known(
@@ -489,12 +489,12 @@ impl std::fmt::Display for UsageLimitReachedError {
             }
             Some(PlanType::Known(KnownPlan::Free)) | Some(PlanType::Known(KnownPlan::Go)) => {
                 format!(
-                    "You've hit your usage limit. Upgrade to Plus to continue using Codex (https://chatgpt.com/explore/plus),{}",
+                    "You've hit your usage limit. Upgrade to Plus to continue using Aster (https://chatgpt.com/explore/plus),{}",
                     retry_suffix_after_or(self.resets_at.as_ref())
                 )
             }
             Some(PlanType::Known(KnownPlan::Pro | KnownPlan::ProLite)) => format!(
-                "You've hit your usage limit. Visit https://chatgpt.com/codex/settings/usage to purchase more credits{}",
+                "You've hit your usage limit. Visit your usage settings to purchase more credits{}",
                 retry_suffix_after_or(self.resets_at.as_ref())
             ),
             Some(PlanType::Known(KnownPlan::Enterprise))

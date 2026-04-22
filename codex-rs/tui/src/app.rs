@@ -5412,7 +5412,7 @@ impl App {
                                     Line::from(vec!["• ".dim(), "Sandbox ready".into()]),
                                     Line::from(vec![
                                         "  ".into(),
-                                        "Codex can now safely edit files and execute commands in your computer"
+                                        "Aster can now safely edit files and execute commands on your computer"
                                             .dark_gray(),
                                     ]),
                                 ]);
@@ -6408,7 +6408,7 @@ impl App {
             Err(external_editor::EditorError::MissingEditor) => {
                 self.chat_widget
                     .add_to_history(history_cell::new_error_event(
-                    "Cannot open external editor: set $VISUAL or $EDITOR before starting Codex."
+                    "Cannot open external editor: set $VISUAL or $EDITOR before starting Aster."
                         .to_string(),
                 ));
                 self.reset_external_editor_state(tui);
@@ -12365,7 +12365,7 @@ guardian_approval = true
         );
         assert_eq!(
             summary.resume_command,
-            Some("codex resume 123e4567-e89b-12d3-a456-426614174000".to_string())
+            Some("aster resume 123e4567-e89b-12d3-a456-426614174000".to_string())
         );
     }
 
@@ -12391,7 +12391,7 @@ guardian_approval = true
         .expect("summary");
         assert_eq!(
             summary.resume_command,
-            Some("codex resume 123e4567-e89b-12d3-a456-426614174000".to_string())
+            Some("aster resume 123e4567-e89b-12d3-a456-426614174000".to_string())
         );
     }
 }

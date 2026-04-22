@@ -3,23 +3,16 @@ use std::path::PathBuf;
 
 #[derive(Debug, Parser)]
 pub struct AppCommand {
-    /// Workspace path to open in Codex Desktop.
+    /// Workspace path for future Aster Desktop integration.
     #[arg(value_name = "PATH", default_value = ".")]
     pub path: PathBuf,
 
-    /// Override the app installer download URL (advanced).
-    #[arg(long = "download-url")]
+    /// Ignored in Aster builds; upstream desktop downloads are disabled.
+    #[arg(long = "download-url", hide = true)]
     pub download_url_override: Option<String>,
 }
 
 pub async fn run_app(cmd: AppCommand) -> anyhow::Result<()> {
-    let workspace = std::fs::canonicalize(&cmd.path).unwrap_or(cmd.path);
-    #[cfg(target_os = "macos")]
-    {
-        crate::desktop_app::run_app_open_or_install(workspace, cmd.download_url_override).await
-    }
-    #[cfg(target_os = "windows")]
-    {
-        crate::desktop_app::run_app_open_or_install(workspace, cmd.download_url_override).await
-    }
+    let _ = cmd;
+    anyhow::bail!("Aster Desktop integration is not available in this white-label build.")
 }

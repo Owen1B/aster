@@ -15,6 +15,12 @@ use std::path::PathBuf;
 use crate::version::CODEX_CLI_VERSION;
 
 pub fn get_upgrade_version(config: &Config) -> Option<String> {
+    // Do not check the upstream Codex release channels for Aster builds.
+    // Aster releases are produced by this fork's GitHub workflows.
+    if std::env::var_os("ASTER_ENABLE_UPSTREAM_UPDATE_CHECK").is_none() {
+        return None;
+    }
+
     if !config.check_for_update_on_startup || is_source_build_version(CODEX_CLI_VERSION) {
         return None;
     }

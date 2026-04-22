@@ -711,9 +711,9 @@ async fn shell_zsh_fork_prefers_shell_command_over_unified_exec() {
                     "/opt/codex/zsh"
                 })),
                 Some(&PathBuf::from(if cfg!(windows) {
-                    r"C:\opt\codex\codex-execve-wrapper"
+                    r"C:\opt\codex\aster-execve-wrapper"
                 } else {
-                    "/opt/codex/codex-execve-wrapper"
+                    "/opt/codex/aster-execve-wrapper"
                 })),
             )
             .unified_exec_shell_mode,
@@ -721,7 +721,7 @@ async fn shell_zsh_fork_prefers_shell_command_over_unified_exec() {
             UnifiedExecShellMode::ZshFork(ZshForkConfig {
                 shell_zsh_path: AbsolutePathBuf::from_absolute_path("/opt/codex/zsh").unwrap(),
                 main_execve_wrapper_exe: AbsolutePathBuf::from_absolute_path(
-                    "/opt/codex/codex-execve-wrapper",
+                    "/opt/codex/aster-execve-wrapper",
                 )
                 .unwrap(),
             })

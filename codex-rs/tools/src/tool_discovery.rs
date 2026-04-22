@@ -12,7 +12,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use std::collections::BTreeMap;
 
-const TUI_CLIENT_NAME: &str = "codex-tui";
+const TUI_CLIENT_NAME: &str = "aster-tui";
 pub const TOOL_SEARCH_TOOL_NAME: &str = "tool_search";
 pub const TOOL_SEARCH_DEFAULT_LIMIT: usize = 8;
 pub const TOOL_SUGGEST_TOOL_NAME: &str = "tool_suggest";

@@ -376,7 +376,7 @@ async fn process_request(
                     match tiny_http::Header::from_bytes(&b"Location"[..], success_url.as_bytes()) {
                         Ok(header) => HandledRequest::RedirectWithHeader(header),
                         Err(_) => login_error_response(
-                            "Sign-in completed but redirecting back to Codex failed.",
+                            "Sign-in completed but redirecting back to Aster failed.",
                             io::ErrorKind::Other,
                             Some("redirect_failed"),
                             /*error_description*/ None,
@@ -908,7 +908,7 @@ fn login_error_response(
     }
 }
 
-/// Returns true when the OAuth callback represents a missing Codex entitlement.
+/// Returns true when the OAuth callback represents a missing Aster entitlement.
 fn is_missing_codex_entitlement_error(error_code: &str, error_description: Option<&str>) -> bool {
     error_code == "access_denied"
         && error_description.is_some_and(|description| {
@@ -921,7 +921,7 @@ fn is_missing_codex_entitlement_error(error_code: &str, error_description: Optio
 /// Converts OAuth callback errors into a user-facing message.
 fn oauth_callback_error_message(error_code: &str, error_description: Option<&str>) -> String {
     if is_missing_codex_entitlement_error(error_code, error_description) {
-        return "Codex is not enabled for your workspace. Contact your workspace administrator to request access to Codex.".to_string();
+        return "Aster is not enabled for your workspace. Contact your workspace administrator to request access to Aster.".to_string();
     }
 
     if let Some(description) = error_description
@@ -1012,11 +1012,11 @@ fn render_login_error_page(
     let (title, display_message, display_description, help_text) =
         if is_missing_codex_entitlement_error(code, error_description) {
             (
-                "You do not have access to Codex".to_string(),
-                "This account is not currently authorized to use Codex in this workspace."
+                "You do not have access to Aster".to_string(),
+                "This account is not currently authorized to use Aster in this workspace."
                     .to_string(),
-                "Contact your workspace administrator to request access to Codex.".to_string(),
-                "Contact your workspace administrator to get access to Codex, then return to Codex and try again."
+                "Contact your workspace administrator to request access to Aster.".to_string(),
+                "Contact your workspace administrator to get access to Aster, then return to Aster and try again."
                     .to_string(),
             )
         } else {
@@ -1024,7 +1024,7 @@ fn render_login_error_page(
                 "Sign-in could not be completed".to_string(),
                 message.to_string(),
                 error_description.unwrap_or(message).to_string(),
-                "Return to Codex to retry, switch accounts, or contact your workspace admin if access is restricted."
+                "Return to Aster to retry, switch accounts, or contact your workspace admin if access is restricted."
                     .to_string(),
             )
         };
@@ -1232,7 +1232,7 @@ mod tests {
         ))
         .expect("login error page should be utf-8");
 
-        assert!(body.contains("You do not have access to Codex"));
+        assert!(body.contains("You do not have access to Aster"));
         assert!(body.contains("Contact your workspace administrator"));
         assert!(!body.contains("missing_codex_entitlement"));
     }

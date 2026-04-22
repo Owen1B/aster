@@ -1,0 +1,108 @@
+name: aster-upstream-sync
+
+on:
+  workflow_dispatch:
+    inputs:
+      upstream_tag:
+        description: Official openai/codex Rust tag, or latest-stable/latest-prerelease
+        required: true
+        default: latest-stable
+      base_ref:
+        description: Previous Aster release tag used as the white-label patch base
+        required: true
+        default: aster-v0.120.0
+      source_ref:
+        description: Aster ref to replay on top of upstream
+        required: true
+        default: main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.upstream_tag }}-${{ inputs.source_ref }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Prepare upstream sync PR
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 0
+
+      - name: Fetch tags
+        shell: bash
+        run: git fetch --tags origin
+
+      - name: Configure Git author
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Resolve upstream tag
+        id: resolve
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="$(./scripts/aster-sync-upstream --target '${{ inputs.upstream_tag }}' --print-tag)"
+          version="${tag#rust-v}"
+          branch="zhw_dev/aster-sync-${version}"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "branch=${branch}" >> "$GITHUB_OUTPUT"
+
+      - name: Create sync branch
+        shell: bash
+        run: git switch -c "${{ steps.resolve.outputs.branch }}"
+
+      - name: Replay Aster patch on upstream tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./scripts/aster-sync-upstream \
+            --target "${{ steps.resolve.outputs.tag }}" \
+            --base-ref "${{ inputs.base_ref }}" \
+            --source-ref HEAD \
+            --update-worktree
+
+      - name: Commit sync
+        id: commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git commit -m "Sync Aster with upstream ${{ steps.resolve.outputs.tag }}"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Push branch
+        if: steps.commit.outputs.changed == 'true'
+        shell: bash
+        run: git push --force-with-lease origin "${{ steps.resolve.outputs.branch }}"
+
+      - name: Open pull request
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          body_file="${RUNNER_TEMP}/aster-sync-pr.md"
+          cat > "${body_file}" <<BODY
+          Replays the Aster white-label patch from `${{ inputs.base_ref }}..${{ inputs.source_ref }}` onto official `openai/codex` `${{ steps.resolve.outputs.tag }}`.
+
+          After this PR is merged, create and push `aster-v${{ steps.resolve.outputs.version }}` to publish the GitHub Release.
+          BODY
+          gh pr create \
+            --title "Sync Aster with upstream ${{ steps.resolve.outputs.tag }}" \
+            --body-file "${body_file}" \
+            --base main \
+            --head "${{ steps.resolve.outputs.branch }}"

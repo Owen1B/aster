@@ -776,7 +776,7 @@ fn exec_options(
             }),
             ReviewDecision::TimedOut => None,
             ReviewDecision::Abort => Some(ApprovalOption {
-                label: "No, and tell Codex what to do differently".to_string(),
+                label: "No, and tell Aster what to do differently".to_string(),
                 decision: ApprovalDecision::Review(ReviewDecision::Abort),
                 display_shortcut: Some(key_hint::plain(KeyCode::Esc)),
                 additional_shortcuts: vec![key_hint::plain(KeyCode::Char('n'))],
@@ -843,7 +843,7 @@ fn patch_options() -> Vec<ApprovalOption> {
             additional_shortcuts: vec![key_hint::plain(KeyCode::Char('a'))],
         },
         ApprovalOption {
-            label: "No, and tell Codex what to do differently".to_string(),
+            label: "No, and tell Aster what to do differently".to_string(),
             decision: ApprovalDecision::Review(ReviewDecision::Abort),
             display_shortcut: Some(key_hint::plain(KeyCode::Esc)),
             additional_shortcuts: vec![key_hint::plain(KeyCode::Char('n'))],
@@ -1235,7 +1235,7 @@ mod tests {
                 "Yes, just this once".to_string(),
                 "Yes, and allow this host for this conversation".to_string(),
                 "Yes, and allow this host in the future".to_string(),
-                "No, and tell Codex what to do differently".to_string(),
+                "No, and tell Aster what to do differently".to_string(),
             ]
         );
     }
@@ -1258,7 +1258,7 @@ mod tests {
             vec![
                 "Yes, proceed".to_string(),
                 "Yes, and don't ask again for this command in this session".to_string(),
-                "No, and tell Codex what to do differently".to_string(),
+                "No, and tell Aster what to do differently".to_string(),
             ]
         );
     }
@@ -1283,7 +1283,7 @@ mod tests {
             labels,
             vec![
                 "Yes, proceed".to_string(),
-                "No, and tell Codex what to do differently".to_string(),
+                "No, and tell Aster what to do differently".to_string(),
             ]
         );
     }
@@ -1505,7 +1505,7 @@ mod tests {
             })
             .collect();
         let expected = vec![
-            "✔ You approved codex to run".to_string(),
+            "✔ You approved Aster to run".to_string(),
             "  git add tui/src/render/".to_string(),
             "  mod.rs tui/src/render/".to_string(),
             "  renderable.rs this time".to_string(),

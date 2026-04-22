@@ -515,7 +515,7 @@ impl ChatWidget {
         now: Instant,
     ) -> Option<String> {
         match item {
-            TerminalTitleItem::AppName => Some("codex".to_string()),
+            TerminalTitleItem::AppName => Some("aster".to_string()),
             TerminalTitleItem::Project => self.terminal_title_project_name(),
             TerminalTitleItem::Spinner => self.terminal_title_spinner_text_at(now),
             TerminalTitleItem::Status => Some(self.terminal_title_status_text()),

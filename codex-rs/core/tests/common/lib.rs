@@ -176,7 +176,7 @@ pub async fn load_default_config_for_test(codex_home: &TempDir) -> Config {
 fn default_test_overrides() -> ConfigOverrides {
     ConfigOverrides {
         codex_linux_sandbox_exe: Some(
-            find_codex_linux_sandbox_exe().expect("should find binary for codex-linux-sandbox"),
+            find_codex_linux_sandbox_exe().expect("should find binary for aster-linux-sandbox"),
         ),
         ..ConfigOverrides::default()
     }
@@ -573,7 +573,7 @@ macro_rules! codex_linux_sandbox_exe_or_skip {
             match $crate::find_codex_linux_sandbox_exe() {
                 Ok(path) => Some(path),
                 Err(err) => {
-                    eprintln!("codex-linux-sandbox binary not available, skipping test: {err}");
+                    eprintln!("aster-linux-sandbox binary not available, skipping test: {err}");
                     return;
                 }
             }
@@ -589,7 +589,7 @@ macro_rules! codex_linux_sandbox_exe_or_skip {
             match $crate::find_codex_linux_sandbox_exe() {
                 Ok(path) => Some(path),
                 Err(err) => {
-                    eprintln!("codex-linux-sandbox binary not available, skipping test: {err}");
+                    eprintln!("aster-linux-sandbox binary not available, skipping test: {err}");
                     return $return_value;
                 }
             }

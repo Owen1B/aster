@@ -65,10 +65,10 @@ impl ToolHandler for ToolSuggestHandler {
             ));
         }
         if args.tool_type == DiscoverableToolType::Plugin
-            && turn.app_server_client_name.as_deref() == Some("codex-tui")
+            && turn.app_server_client_name.as_deref() == Some("aster-tui")
         {
             return Err(FunctionCallError::RespondToModel(
-                "plugin tool suggestions are not available in codex-tui yet".to_string(),
+                "plugin tool suggestions are not available in aster-tui yet".to_string(),
             ));
         }
 

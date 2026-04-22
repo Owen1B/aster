@@ -8,7 +8,7 @@ use std::path::PathBuf;
 #[derive(Parser, Debug)]
 #[command(
     version,
-    override_usage = "codex exec [OPTIONS] [PROMPT]\n       codex exec [OPTIONS] <COMMAND> [ARGS]"
+    override_usage = "aster exec [OPTIONS] [PROMPT]\n       aster exec [OPTIONS] <COMMAND> [ARGS]"
 )]
 pub struct Cli {
     /// Action to perform. If omitted, runs a new non-interactive session.
@@ -66,7 +66,7 @@ pub struct Cli {
     #[clap(long = "cd", short = 'C', value_name = "DIR")]
     pub cwd: Option<PathBuf>,
 
-    /// Allow running Codex outside a Git repository.
+    /// Allow running Aster outside a Git repository.
     #[arg(long = "skip-git-repo-check", global = true, default_value_t = false)]
     pub skip_git_repo_check: bool,
 

@@ -140,9 +140,9 @@ fn test_get_command_ignores_explicit_shell_in_zsh_fork_mode() -> anyhow::Result<
     let shell_mode = UnifiedExecShellMode::ZshFork(ZshForkConfig {
         shell_zsh_path: shell_zsh_path.clone(),
         main_execve_wrapper_exe: AbsolutePathBuf::from_absolute_path(if cfg!(windows) {
-            r"C:\opt\codex\codex-execve-wrapper"
+            r"C:\opt\codex\aster-execve-wrapper"
         } else {
-            "/opt/codex/codex-execve-wrapper"
+            "/opt/codex/aster-execve-wrapper"
         })?,
     });
 
