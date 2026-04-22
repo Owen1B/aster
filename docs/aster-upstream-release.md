@@ -117,3 +117,9 @@ are intentionally white-labeled first.
 For easier upstream tracking, keep internal Rust crate names such as
 `codex-core` and `codex-tui`. Model IDs such as `gpt-5.2-codex` are also upstream
 identifiers and should not be renamed as part of the white-label patch.
+
+Keep model prompt templates and protocol base instructions upstream as well.
+Examples include `codex-rs/core/gpt*_prompt.md` and
+`codex-rs/protocol/src/prompts/base_instructions/default.md`. Those files define
+the model-facing identity/context and are not part of the Aster runtime/process
+branding surface.
