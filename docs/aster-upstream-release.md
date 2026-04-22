@@ -71,6 +71,12 @@ Resolve the latest stable tag only:
 ./scripts/aster-sync-upstream --target latest-stable --print-tag
 ```
 
+Check that model-facing internals still match the upstream release tag:
+
+```bash
+./scripts/aster-check-white-label-boundary --base-ref upstream-rust-v0.122.0
+```
+
 Prepare a future sync branch after `main` has been migrated to upstream-history
 mode:
 
@@ -123,3 +129,7 @@ Examples include `codex-rs/core/gpt*_prompt.md` and
 `codex-rs/protocol/src/prompts/base_instructions/default.md`. Those files define
 the model-facing identity/context and are not part of the Aster runtime/process
 branding surface.
+
+The sync and release workflows run `scripts/aster-check-white-label-boundary` to
+enforce this. If it fails after an upstream rebase, restore the listed files from
+the matching `upstream-rust-v*` tag instead of white-labeling them.

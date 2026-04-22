@@ -96,6 +96,10 @@ Do not mechanically replace `codex` inside files that define model identity,
 model IDs, or prompt text sent to the model. The Aster patch should change the
 binary/process/config/docs surface, not the model's upstream identity.
 
+Run `scripts/aster-check-white-label-boundary --base-ref upstream-rust-vX.Y.Z`
+before release if you edit branding manually. The GitHub sync and release
+workflows run this check automatically.
+
 ## Tracking upstream
 
 This fork should keep OpenAI's repository as a Git remote:

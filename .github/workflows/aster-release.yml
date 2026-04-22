@@ -46,6 +46,18 @@ jobs:
           echo "release_tag=${RELEASE_TAG}" >> "$GITHUB_OUTPUT"
           echo "version=${cargo_version}" >> "$GITHUB_OUTPUT"
 
+      - name: Fetch matching upstream tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${{ steps.validate.outputs.version }}"
+          git fetch --no-tags https://github.com/openai/codex.git \
+            "+refs/tags/rust-v${version}:refs/tags/upstream-rust-v${version}"
+
+      - name: Check white-label boundary
+        shell: bash
+        run: ./scripts/aster-check-white-label-boundary --base-ref "upstream-rust-v${{ steps.validate.outputs.version }}"
+
   build:
     needs: validate
     name: Build ${{ matrix.asset_suffix }}
