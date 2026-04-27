@@ -22,7 +22,7 @@ if [[ -f "${TRACKING_FILE}" ]]; then
   BASE_TAG="${ASTER_LAST_SYNCED_UPSTREAM_TAG:-${BASE_TAG}}"
 fi
 
-BASE_TAG="${BASE_TAG:-rust-v0.122.0}"
+BASE_TAG="${BASE_TAG:-rust-v0.125.0}"
 
 usage() {
   cat <<'USAGE'
@@ -37,8 +37,8 @@ Safe commands:
 
 Prepare an update branch after main has been migrated to upstream-history mode:
   scripts/aster-sync-upstream \
-    --target rust-v0.123.0 \
-    --base-tag rust-v0.122.0 \
+    --target rust-v0.126.0 \
+    --base-tag rust-v0.125.0 \
     --source-ref main \
     --create-branch
 
@@ -58,8 +58,8 @@ Options:
 Model:
   This script assumes Aster is a normal patch stack on top of upstream history:
 
-      upstream-rust-v0.122.0 --- Aster commits     (current main)
-      upstream-rust-v0.123.0 --- Aster commits     (new sync branch)
+      upstream-rust-v0.125.0 --- Aster commits     (current main)
+      upstream-rust-v0.126.0 --- Aster commits     (new sync branch)
 
   It intentionally avoids snapshot-tree replacement. If rebase conflicts occur,
   resolve them normally with git, then continue the rebase.

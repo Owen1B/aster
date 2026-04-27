@@ -109,10 +109,10 @@ git remote add upstream https://github.com/openai/codex.git
 git fetch upstream main --tags
 ```
 
-Current `main` starts from official `rust-v0.122.0` and applies the Aster
+Current `main` starts from official `rust-v0.125.0` and applies the Aster
 white-label patch stack on top:
 
-- `upstream-rust-v0.122.0`
+- `upstream-rust-v0.125.0`
 - Aster white-label/runtime/release commits
 - `main`
 

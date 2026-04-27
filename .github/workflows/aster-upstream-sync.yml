@@ -10,7 +10,7 @@ on:
       base_tag:
         description: Previous official Rust tag that current Aster main is based on
         required: true
-        default: rust-v0.122.0
+        default: rust-v0.125.0
       source_ref:
         description: Aster ref to rebase onto the new upstream tag
         required: true

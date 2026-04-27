@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: Existing Aster tag to release, for example aster-v0.122.0
+        description: Existing Aster tag to release, for example aster-v0.125.0
         required: true
-        default: aster-v0.122.0
+        default: aster-v0.125.0
 
 permissions:
   contents: write
@@ -38,7 +38,7 @@ jobs:
         run: |
           set -euo pipefail
           [[ "${RELEASE_TAG}" =~ ^aster-v[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta)(\.[0-9]+)?)?$ ]] \
-            || { echo "Tag '${RELEASE_TAG}' must look like aster-v0.122.0"; exit 1; }
+            || { echo "Tag '${RELEASE_TAG}' must look like aster-v0.125.0"; exit 1; }
           tag_version="${RELEASE_TAG#aster-v}"
           cargo_version="$(grep -m1 '^version = ' codex-rs/Cargo.toml | sed -E 's/version = "([^"]+)"/\1/')"
           [[ "${tag_version}" == "${cargo_version}" ]] \

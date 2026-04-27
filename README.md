@@ -28,13 +28,13 @@ curl -fsSL https://raw.githubusercontent.com/Owen1B/aster/main/scripts/install/i
 安装脚本默认安装 GitHub Release 最新的 `aster-v*`，并把可执行文件链接到 `~/.local/bin/aster`。如果要安装指定版本：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Owen1B/aster/main/scripts/install/install.sh | sh -s -- --release 0.122.0
+curl -fsSL https://raw.githubusercontent.com/Owen1B/aster/main/scripts/install/install.sh | sh -s -- --release 0.125.0
 ```
 
 Linux x86_64 GNU 示例：
 
 ```bash
-VERSION=0.122.0 # 按仓库 Releases 页面最新的 aster-v* 版本替换
+VERSION=0.125.0 # 按仓库 Releases 页面最新的 aster-v* 版本替换
 curl -LO "https://github.com/Owen1B/aster/releases/download/aster-v${VERSION}/aster-${VERSION}-x86_64-unknown-linux-gnu.tar.gz"
 tar -xzf "aster-${VERSION}-x86_64-unknown-linux-gnu.tar.gz"
 sudo install -m 755 "aster-${VERSION}-x86_64-unknown-linux-gnu/aster" /usr/local/bin/aster
@@ -44,7 +44,7 @@ aster --help
 macOS universal Apple Darwin 示例：
 
 ```bash
-VERSION=0.122.0 # 按仓库 Releases 页面最新的 aster-v* 版本替换
+VERSION=0.125.0 # 按仓库 Releases 页面最新的 aster-v* 版本替换
 curl -LO "https://github.com/Owen1B/aster/releases/download/aster-v${VERSION}/aster-${VERSION}-universal-apple-darwin.tar.gz"
 tar -xzf "aster-${VERSION}-universal-apple-darwin.tar.gz"
 sudo install -m 755 "aster-${VERSION}-universal-apple-darwin/aster" /usr/local/bin/aster
@@ -205,10 +205,10 @@ aster mcp --help
 
 Aster 按“小补丁栈”的方式跟踪官方 Codex release：上游 `rust-v*` 标签作为基底，Aster 只在上面保留白标、发布和维护脚本相关改动。固定流程见 [`docs/aster-upstream-release.md`](docs/aster-upstream-release.md)。
 
-当前 `main` 已经是以官方 `rust-v0.122.0` 为基底的 Aster patch-stack：
+当前 `main` 已经是以官方 `rust-v0.125.0` 为基底的 Aster patch-stack：
 
 ```text
-openai/codex rust-v0.122.0  +  Aster 白标补丁  =  main
+openai/codex rust-v0.125.0  +  Aster 白标补丁  =  main
 ```
 
 以后跟踪上游时，只需要把 Aster 补丁栈 rebase 到新的官方 `rust-v*` 标签上，不需要再维护旧版本历史。
@@ -218,7 +218,7 @@ openai/codex rust-v0.122.0  +  Aster 白标补丁  =  main
 ```bash
 ./scripts/aster-sync-upstream --target latest-stable --fetch-only
 ./scripts/aster-sync-upstream --target latest-stable --print-tag
-./scripts/aster-check-white-label-boundary --base-ref upstream-rust-v0.122.0
+./scripts/aster-check-white-label-boundary --base-ref upstream-rust-v0.125.0
 ```
 
 `.github/workflows/aster-upstream-sync.yml` 可以创建同步上游的 PR：它会把 Aster 补丁栈 rebase 到指定官方 `rust-v*` 标签上。PR 合并后，推送 `aster-vX.Y.Z` 标签会触发 `.github/workflows/aster-release.yml`，并在同一个 GitHub Release 中发布 Linux 和 macOS 两个版本。

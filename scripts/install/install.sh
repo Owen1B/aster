@@ -29,8 +29,8 @@ usage() {
   cat <<EOF_USAGE
 Usage: install.sh [--release VERSION]
 
-Install Aster from GitHub Releases. VERSION may be latest, 0.122.0,
-v0.122.0, or aster-v0.122.0.
+Install Aster from GitHub Releases. VERSION may be latest, 0.125.0,
+v0.125.0, or aster-v0.125.0.
 EOF_USAGE
 }
 

@@ -3,16 +3,16 @@
 Aster should be maintained as a small patch stack on top of official
 `openai/codex` Rust release tags.
 
-As of 2026-04-22, the official stable release is `rust-v0.122.0`. The newest
-pre-release observed at the same time is `rust-v0.123.0-alpha.7`.
+As of 2026-04-27, the official stable release is `rust-v0.125.0`. The newest
+pre-release observed at the same time is `rust-v0.126.0-alpha.4`.
 
 ## Desired Repository Shape
 
 The maintainable shape is:
 
 ```text
-openai/codex rust-v0.122.0  ── Aster white-label commits      main
-openai/codex rust-v0.123.0  ── same Aster commits rebased     sync PR
+openai/codex rust-v0.125.0  ── Aster white-label commits      main
+openai/codex rust-v0.126.0  ── same Aster commits rebased     sync PR
 ```
 
 This shape keeps the official upstream history. Future updates are normal
@@ -20,14 +20,14 @@ This shape keeps the official upstream history. Future updates are normal
 
 ## Current Baseline
 
-Current `main` starts from official `rust-v0.122.0`:
+Current `main` starts from official `rust-v0.125.0`:
 
 ```text
-upstream-rust-v0.122.0  ->  Aster commits  ->  main
+upstream-rust-v0.125.0  ->  Aster commits  ->  main
 ```
 
-Treat `rust-v0.122.0` as Aster's first maintained baseline. There is no need to
-preserve or release previous Aster history.
+Treat `rust-v0.125.0` as Aster's current maintained baseline. There is no need
+to preserve or release previous Aster history.
 
 ## Tracking State
 
@@ -36,9 +36,9 @@ The tracking state lives in `ASTER_UPSTREAM_TRACKING.env`.
 On the upstream-history branch, it should say:
 
 ```text
-ASTER_LAST_SYNCED_UPSTREAM_TAG=rust-v0.122.0
-ASTER_PATCH_BASE_REF=upstream-rust-v0.122.0
-ASTER_NEXT_RELEASE_TAG=aster-v0.122.0
+ASTER_LAST_SYNCED_UPSTREAM_TAG=rust-v0.125.0
+ASTER_PATCH_BASE_REF=upstream-rust-v0.125.0
+ASTER_NEXT_RELEASE_TAG=aster-v0.125.0
 ```
 
 ## Local Commands
@@ -58,15 +58,15 @@ Resolve the latest stable tag only:
 Check that model-facing internals still match the upstream release tag:
 
 ```bash
-./scripts/aster-check-white-label-boundary --base-ref upstream-rust-v0.122.0
+./scripts/aster-check-white-label-boundary --base-ref upstream-rust-v0.125.0
 ```
 
 Prepare a future sync branch:
 
 ```bash
 ./scripts/aster-sync-upstream \
-  --target rust-v0.123.0 \
-  --base-tag rust-v0.122.0 \
+  --target rust-v0.126.0 \
+  --base-tag rust-v0.125.0 \
   --source-ref main \
   --create-branch
 ```
@@ -80,8 +80,8 @@ git rebase --continue
 After the sync branch is merged, create the matching Aster tag:
 
 ```bash
-git tag -a aster-v0.123.0 -m "Aster 0.123.0"
-git push origin main aster-v0.123.0
+git tag -a aster-v0.126.0 -m "Aster 0.126.0"
+git push origin main aster-v0.126.0
 ```
 
 Pushing the `aster-vX.Y.Z` tag triggers the Aster GitHub release workflow.
